@@ -1,0 +1,43 @@
+services:
+  redis:
+    image: redis:alpine
+    networks:
+      - front-tier
+
+  db:
+    image: postgres:15-alpine
+    container_name: my-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - front-tier
+
+  vote:
+    build:
+      context: ./vote
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./vote:/usr/local/app
+    ports:
+      - "8080:80"
+    networks:
+      - front-tier
+
+  result:
+    build: ./result
+    volumes:
+      - ./result:/usr/local/app
+    ports:
+      - "8081:80"
+      - "127.0.0.1:9229:9229"
+    networks:
+      - front-tier
+
+networks:
+  front-tier:
