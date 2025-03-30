@@ -1,18 +1,4 @@
 services:
-  redis:
-    image: redis:alpine
-    networks:
-      - front-tier
-
-  db:
-    image: postgres:15-alpine
-    container_name: my-postgres
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    networks:
-      - front-tier
-
   vote:
     build:
       context: ./vote
@@ -26,8 +12,11 @@ services:
       - ./vote:/usr/local/app
     ports:
       - "8080:80"
+    environment:
+      - REDIS_HOST=172.20.0.2
     networks:
       - front-tier
+      - backend-voting-app_back-tier
 
   result:
     build: ./result
@@ -36,8 +25,13 @@ services:
     ports:
       - "8081:80"
       - "127.0.0.1:9229:9229"
+    environment:
+      - DB_HOST=172.20.0.3
     networks:
       - front-tier
+      - backend-voting-app_back-tier
 
 networks:
   front-tier:
+  backend-voting-app_back-tier:
+    external: true
